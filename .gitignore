@@ -1,0 +1,30 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Security: Signing files
+app/signing.properties
+keystore/
+*.keystore
+*.jks
+
+# Security: ProGuard mapping files
+app/build/outputs/mapping/
+app/release/
+
+# Security: Debug files
+*.apk
+*.aab

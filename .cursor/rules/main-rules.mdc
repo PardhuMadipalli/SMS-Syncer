@@ -1,0 +1,12 @@
+---
+description: Rules for this android project.
+globs:
+alwaysApply: true
+---
+
+## Main rules
+
+- Always read the main [README.md](mdc:README.md) file to understand the project goal and what has been implemented so far.
+- Always update the main [README.md](mdc:README.md) file to reflect any changes made to the project.
+- Do not use or create any sub-folder README files - always use the main [README.md](mdc:README.md) at the project root.
+- When making changes, ensure the main [README.md](mdc:README.md) is updated with new features, implementation details, or any relevant project information.
