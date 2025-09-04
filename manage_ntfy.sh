@@ -1,10 +1,16 @@
 #!/bin/zsh
 
+# set -x
+# exec &>> /tmp/ntfy_notifier.log
+
 # ntfy.sh Notification Manager
 # Manages the ntfy notifier script
-NOTIFIER_SCRIPT="/Users/mpardhu/Documents/Personal_Projects/SMSSyncer/ntfy_notifier.sh"
+# Usage: ./manage_ntfy.sh <directory_containing_ntfy_notifier.sh> [command]
+# Example: ./manage_ntfy.sh /Users/mpardhu/Documents/Personal_Projects/SMSSyncer restart
+
+
 LOCK_FILE="/tmp/ntfy_notifier.lock"
-LOG_FILE="/tmp/ntfy_notifier1.log"
+LOG_FILE="/tmp/ntfy_notifier.log"
 
 # Colors for output
 RED='\033[0;31m'
@@ -56,6 +62,25 @@ display_notification() {
     osascript -e "display notification \"$message\" with title \"$title\" sound name \"Submarine\""
 }
 
+# Get the directory containing ntfy_notifier.sh from first argument
+SCRIPT_DIR="$1"
+print_status "Running ${SCRIPT_DIR}/ntfy_notifier.sh"
+if [ -z "$SCRIPT_DIR" ]; then
+    print_error "Error: Directory containing ntfy_notifier.sh must be provided as first argument"
+    print_error "Usage: $0 <directory_containing_ntfy_notifier.sh> [command]"
+    print_error "Example: $0 /Users/mpardhu/Documents/Personal_Projects/SMSSyncer restart"
+    exit 1
+fi
+
+# Set the notifier script path
+NOTIFIER_SCRIPT="$SCRIPT_DIR/ntfy_notifier.sh"
+
+# Verify the notifier script exists
+if [ ! -f "$NOTIFIER_SCRIPT" ]; then
+    print_error "ntfy_notifier.sh not found in directory: $SCRIPT_DIR"
+    exit 1
+fi
+
 # Function to start the notifier
 start_notifier() {
     if is_running; then
@@ -65,6 +90,7 @@ start_notifier() {
     fi
     
     print_status "Starting ntfy notifier..."
+    print_status "Notifier script: $NOTIFIER_SCRIPT"
     print_status "Log file: $LOG_FILE"
 
     # read the file /Users/Shared/SMS_Syncer_Listener/config.json and get the topic name
@@ -185,24 +211,25 @@ show_logs() {
 show_help() {
     echo -e "${BLUE}ntfy.sh Notification Manager${NC}"
     echo ""
-    echo "Usage: $0 [COMMAND]"
+    echo "Usage: $0 <directory_containing_ntfy_notifier.sh> [COMMAND]"
     echo ""
     echo "Commands:"
     echo "  start     Start the ntfy notifier"
     echo "  stop      Stop the ntfy notifier"
-    echo "  restart   Restart the ntfy notifier"
+    echo "  restart   Restart the ntfy notifier (default)"
     echo "  status    Show current status"
     echo "  logs      Show recent logs"
     echo "  help      Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 start    # Start the notifier"
-    echo "  $0 status   # Check if running"
-    echo "  $0 logs     # View recent logs"
+    echo "  $0 /Users/mpardhu/Documents/Personal_Projects/SMSSyncer start    # Start the notifier"
+    echo "  $0 /Users/mpardhu/Documents/Personal_Projects/SMSSyncer status   # Check if running"
+    echo "  $0 /Users/mpardhu/Documents/Personal_Projects/SMSSyncer logs     # View recent logs"
+    echo "  $0 /Users/mpardhu/Documents/Personal_Projects/SMSSyncer          # Restart (default)"
 }
 
 # Main execution
-case "${1:-restart}" in
+case "${2:-restart}" in
     start)
         start_notifier
         ;;
@@ -222,7 +249,7 @@ case "${1:-restart}" in
         show_help
         ;;
     *)
-        print_error "Unknown command: $1"
+        print_error "Unknown command: $2"
         echo ""
         show_help
         exit 1
