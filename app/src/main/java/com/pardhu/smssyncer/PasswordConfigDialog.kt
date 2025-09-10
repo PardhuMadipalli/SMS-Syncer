@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -11,32 +12,36 @@ import android.widget.Toast
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 
-/** Dialog for configuring the ntfy topic name */
-class TopicConfigDialog(private val context: Context) {
+/** Dialog for configuring the encryption password */
+class PasswordConfigDialog(private val context: Context) {
     
     /**
-     * Shows the topic configuration dialog
+     * Shows the password configuration dialog
      */
     fun show() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_topic_config, null)
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_password_config, null)
         val titleText = dialogView.findViewById<TextView>(R.id.dialogTitle)
         val messageText = dialogView.findViewById<TextView>(R.id.dialogMessage)
-        val topicInput = dialogView.findViewById<TextInputEditText>(R.id.topicInput)
+        val passwordInput = dialogView.findViewById<TextInputEditText>(R.id.passwordInput)
         val confirmButton = dialogView.findViewById<MaterialButton>(R.id.confirmButton)
         val cancelButton = dialogView.findViewById<MaterialButton>(R.id.cancelButton)
         
-        titleText.text = "Configure ntfy Topic"
-        messageText.text = "Enter your ntfy.sh topic name. This will be stored securely on your device."
+        titleText.text = "Set Encryption Password"
+        messageText.text = "Enter a password to encrypt SMS messages. This same password must be configured in your shell script for decryption."
+        
+        // Set password input type
+        passwordInput.transformationMethod = PasswordTransformationMethod()
         
         // Clear any previous input
-        topicInput.text?.clear()
+        passwordInput.text?.clear()
         
         // Add text change listener to enable/disable confirm button
-        topicInput.addTextChangedListener(object : TextWatcher {
+        passwordInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                confirmButton.isEnabled = s?.isNotEmpty() ?: false
+                val password = s?.toString() ?: ""
+                confirmButton.isEnabled = password.length >= 8
             }
         })
         
@@ -46,20 +51,20 @@ class TopicConfigDialog(private val context: Context) {
             .create()
         
         confirmButton.setOnClickListener {
-            val topic = topicInput.text?.toString()?.trim() ?: ""
-            if (topic.isNotEmpty()) {
-                // Save the topic directly
-                if (TopicManager.saveTopic(context, topic)) {
-                    Toast.makeText(context, "Topic configured successfully!", Toast.LENGTH_SHORT).show()
+            val password = passwordInput.text?.toString() ?: ""
+            if (password.length >= 8) {
+                // Save the password
+                if (PasswordManager.savePassword(context, password)) {
+                    Toast.makeText(context, "Password configured successfully!", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
-                    // Notify the activity that topic is configured
-                    (context as? MainActivity)?.onTopicConfigured()
+                    // Notify the activity that password is configured
+                    (context as? MainActivity)?.onPasswordConfigured()
                 } else {
-                    Toast.makeText(context, "Failed to save topic. Please try again.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Failed to save password. Please try again.", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 }
             } else {
-                Toast.makeText(context, "Please enter a topic name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show()
             }
         }
         

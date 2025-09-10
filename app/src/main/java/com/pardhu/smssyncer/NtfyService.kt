@@ -11,12 +11,18 @@ object NtfyService {
 
   // Security: Topic is stored securely and retrieved dynamically
 
-  /** Sends an SMS message to ntfy.sh */
+  /** Sends an SMS message to ntfy.sh with encryption */
   fun sendToNtfy(context: Context, displayName: String?, message: String?) {
     try {
       val topic = TopicManager.getTopic(context)
       if (topic.isNullOrEmpty()) {
         // Topic not configured, cannot send message
+        return
+      }
+      
+      val password = PasswordManager.getPassword(context)
+      if (password.isNullOrEmpty()) {
+        // Password not configured, cannot encrypt message
         return
       }
     
@@ -44,9 +50,23 @@ object NtfyService {
 
           connection.setRequestProperty("Title", title)
 
-          // Send request
+          // Encrypt the message
+          val messageToEncrypt = "$sanitizedDisplayName|$sanitizedMessage"
+          val encryptedMessage = MessageEncryption.encrypt(messageToEncrypt, password)
+          
+          if (encryptedMessage == null) {
+            // Encryption failed
+            NotificationHelper.showNotification(
+                    false,
+                    "SMS encryption failed",
+                    "Failed to encrypt message from $sanitizedDisplayName"
+            )
+            return@execute
+          }
+
+          // Send encrypted request
           connection.outputStream.use { outputStream ->
-            val input = sanitizedMessage.toByteArray(StandardCharsets.UTF_8)
+            val input = encryptedMessage.toByteArray(StandardCharsets.UTF_8)
             outputStream.write(input)
           }
 

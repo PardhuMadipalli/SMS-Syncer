@@ -93,24 +93,33 @@ start_notifier() {
     print_status "Notifier script: $NOTIFIER_SCRIPT"
     print_status "Log file: $LOG_FILE"
 
-    # read the file /Users/Shared/SMS_Syncer_Listener/config.json and get the topic name
+    # read the file /Users/Shared/SMS_Syncer_Listener/config.json and get the topic name and password
     # first check if the file is there
     if [ -f "/Users/Shared/SMS_Syncer_Listener/config.json" ]; then
         local topic_name=$(jq -r '.topic_name' "/Users/Shared/SMS_Syncer_Listener/config.json")
+        local encryption_password=$(jq -r '.encryption_password' "/Users/Shared/SMS_Syncer_Listener/config.json")
+        
         # if the field is "null" or empty, then print an error
         # note that jq will return as "null" if the field is not present
         if [ "$topic_name" = "null" ] || [ -z "$topic_name" ]; then
-            print_error "Error: topic_name field is null or empty in config.json. Set it by running 'echo '{\"topic_name\":\"<your_topic_name>\"}' > /Users/Shared/SMS_Syncer_Listener/config.json'"
+            print_error "Error: topic_name field is null or empty in config.json. Set it by running 'echo '{\"topic_name\":\"<your_topic_name>\",\"encryption_password\":\"<your_password>\"}' > /Users/Shared/SMS_Syncer_Listener/config.json'"
             exit 1
         fi
+        
+        if [ "$encryption_password" = "null" ] || [ -z "$encryption_password" ]; then
+            print_error "Error: encryption_password field is null or empty in config.json. Set it by running 'echo '{\"topic_name\":\"<your_topic_name>\",\"encryption_password\":\"<your_password>\"}' > /Users/Shared/SMS_Syncer_Listener/config.json'"
+            exit 1
+        fi
+        
         print_status "Topic name: $topic_name"
+        print_status "Encryption password: [HIDDEN]"
     else
-        print_error "Error: config.json file not found. Create it by running 'echo '{\"topic_name\":\"<your_topic_name>\"}' > /Users/Shared/SMS_Syncer_Listener/config.json'"
+        print_error "Error: config.json file not found. Create it by running 'echo '{\"topic_name\":\"<your_topic_name>\",\"encryption_password\":\"<your_password>\"}' > /Users/Shared/SMS_Syncer_Listener/config.json'"
         exit 1
     fi
     
     # Start in background and redirect output
-    nohup "$NOTIFIER_SCRIPT" "$topic_name" "$LOG_FILE" >> /dev/null 2>&1 &
+    nohup "$NOTIFIER_SCRIPT" "$topic_name" "$encryption_password" "$LOG_FILE"  >> /dev/null 2>&1 &
     
     # Wait a moment and check if it started successfully
     sleep 2

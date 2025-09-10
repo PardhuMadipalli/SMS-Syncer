@@ -6,7 +6,8 @@
 # Configuration
 TOPIC_NAME="$1"  # Replace with your actual topic name
 LOCK_FILE="/tmp/ntfy_notifier.lock"
-LOG_FILE="$2"
+ENCRYPTION_PASSWORD="$2"  # Encryption password for decrypting messages
+LOG_FILE="$3"
 
 LOG_THRESHOLD=1000
 LOG_LINES_TO_REMOVE=100
@@ -124,6 +125,51 @@ get_field_from_json() {
     echo "$value"
 }
 
+# Function to decrypt message using OpenSSL
+decrypt_message() {
+    local encrypted_message="$1"
+    local password="$2"
+    
+    if [ -z "$password" ]; then
+        log_error "No encryption password provided"
+        return 1
+    fi
+    
+    # Create SHA-256 hash of password to match Java key derivation
+    local key_hex=$(echo -n "$password" | openssl dgst -sha256 -binary | xxd -p -c 256)
+    log_info "Key hex: $key_hex"
+    
+    # Decode base64 to get the combined IV + encrypted data
+    local combined_data=$(echo "$encrypted_message" | base64 -d)
+    local combined_length=${#combined_data}
+    log_info "Combined data length: $combined_length"
+    
+    if [ $combined_length -lt 16 ]; then
+        log_error "Combined data too short (less than 16 bytes for IV)"
+        return 1
+    fi
+    
+    # Extract IV (first 16 bytes) and encrypted data
+    local iv_hex=$(echo -n "$combined_data" | head -c 16 | xxd -p -c 256)
+    local encrypted_data=$(echo -n "$combined_data" | tail -c +17)
+    local encrypted_length=${#encrypted_data}
+    
+    log_info "IV hex: $iv_hex"
+    log_info "Encrypted data length: $encrypted_length"
+    
+    # Decrypt using OpenSSL with the derived key and IV
+    local decrypted=$(echo -n "$encrypted_data" | openssl enc -aes-256-cbc -d -K "$key_hex" -iv "$iv_hex" 2>/dev/null)
+    local result=$?
+    
+    if [ $result -eq 0 ]; then
+        echo "$decrypted"
+        return 0
+    else
+        log_error "OpenSSL decryption failed with code: $result"
+        return 1
+    fi
+}
+
 # Function to display notification
 show_notification() {
     local message="$1"
@@ -168,8 +214,30 @@ process_sse() {
             log_info "Received event: $event"            
             # Process message events
             if [ "$event" = "message" ] && [ -n "$message" ]; then
-                log_info "Processing message: ${message}"
-                show_notification "$message" "$title"
+                log_info "Processing encrypted message"
+                log_info "Message length: ${#message}"
+                log_info "First 50 chars: ${message:0:50}"
+                
+                # Try to decrypt the message
+                local decrypted_message=$(decrypt_message "$message" "$ENCRYPTION_PASSWORD")
+                local decrypt_result=$?
+                
+                log_info "Decrypt result code: $decrypt_result"
+                log_info "Decrypted message length: ${#decrypted_message}"
+                
+                if [ $decrypt_result -eq 0 ] && [ -n "$decrypted_message" ]; then
+                    # Parse the decrypted message (format: "sender|message")
+                    local sender=$(echo "$decrypted_message" | cut -d'|' -f1)
+                    local sms_content=$(echo "$decrypted_message" | cut -d'|' -f2-)
+                    
+                    log_success "Decrypted message from: $sender"
+                    show_notification "$sms_content" "SMS from $sender"
+                else
+                    log_error "Failed to decrypt message or empty result"
+                    log_error "Decrypt result code: $decrypt_result"
+                    log_error "Decrypted message: '$decrypted_message'"
+                    show_notification "Encrypted message (decryption failed)" "SMS (Encrypted)"
+                fi
             fi
         fi
     done

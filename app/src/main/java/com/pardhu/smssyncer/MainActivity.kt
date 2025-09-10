@@ -62,15 +62,26 @@ class MainActivity : Activity() {
 
     private fun checkTopicConfiguration() {
         if (TopicManager.isTopicConfigured(this)) {
-            // Topic is configured, check permissions
+            // Topic is configured, check password
             updateTopicDisplay()
-            checkAndRequestAllPermissions()
+            checkPasswordConfiguration()
         } else {
             // Topic not configured, show configuration dialog
             updateStatus("Topic Configuration Required", R.color.warning)
             topicText.text = "Not configured"
             configureTopicButton.visibility = View.VISIBLE
             showTopicConfigDialog()
+        }
+    }
+    
+    private fun checkPasswordConfiguration() {
+        if (PasswordManager.isPasswordConfigured(this)) {
+            // Password is configured, check permissions
+            checkAndRequestAllPermissions()
+        } else {
+            // Password not configured, show configuration dialog
+            updateStatus("Password Configuration Required", R.color.warning)
+            showPasswordConfigDialog()
         }
     }
 
@@ -137,6 +148,10 @@ class MainActivity : Activity() {
     private fun showTopicConfigDialog() {
         TopicConfigDialog(this).show()
     }
+    
+    private fun showPasswordConfigDialog() {
+        PasswordConfigDialog(this).show()
+    }
 
     private fun setupBottomNavigation() {
         // Find the navigation items from the included layout
@@ -168,6 +183,10 @@ class MainActivity : Activity() {
     fun onTopicConfigured() {
         updateTopicDisplay()
         configureTopicButton.visibility = View.GONE
+        checkPasswordConfiguration()
+    }
+    
+    fun onPasswordConfigured() {
         checkAndRequestAllPermissions()
     }
 

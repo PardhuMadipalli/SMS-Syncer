@@ -8,9 +8,10 @@ The goal is to build an android app that can send SMS messages after filtering t
 2. ✅ **Customizable SMS Filtering**: Advanced filtering system with customizable rules for important senders, keywords, and spam detection. Users can add/remove filter criteria and reset to defaults.
 3. ✅ **SMS Permission Management**: The app automatically checks for SMS read permissions and requests them if not present. Users can grant permissions through the app interface.
 4. ✅ **Contact Name Resolution**: Automatically displays contact names instead of phone numbers in notifications when contacts permission is granted. Falls back to phone numbers if permission is denied.
-5. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
-6. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
-7. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
+5. ✅ **Message Encryption**: SMS messages are encrypted using AES-256-CBC before sending to ntfy.sh. Users set a password that must match the shell script configuration for decryption.
+6. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
+7. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
+8. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
 
 ## Security & Google Play Protect Compliance
 
@@ -22,7 +23,8 @@ The goal is to build an android app that can send SMS messages after filtering t
 - **No Sensitive Logging**: SMS content is not logged or exposed in error messages
 - **Permission Validation**: Proper permission checking and user consent
 - **Secure Permissions**: Uses `BROADCAST_SMS` permission for receiver protection
-- **Selective Encryption**: Topic names (potentially identifying) use EncryptedSharedPreferences with AES256 encryption, filter settings use standard storage
+- **Selective Encryption**: Topic names and passwords use EncryptedSharedPreferences with AES256 encryption, filter settings use standard storage
+- **Message Encryption**: SMS messages are encrypted with AES-256-CBC using user-defined passwords before transmission
 - **Topic Masking**: Topic names are displayed with only first 2 and last 2 characters visible for privacy
 
 ### Privacy Protection
@@ -46,7 +48,7 @@ The goal is to build an android app that can send SMS messages after filtering t
 - **AndroidX Core KTX**: Kotlin extensions for Android
 - **AndroidX Lifecycle**: Lifecycle-aware components
 - **AndroidX AppCompat**: Backward compatibility
-- **AndroidX Security**: EncryptedSharedPreferences for sensitive topic data, standard SharedPreferences for filter settings
+- **AndroidX Security**: EncryptedSharedPreferences for sensitive topic data and passwords, standard SharedPreferences for filter settings
 - **ConstraintLayout**: Advanced layout management
 - **CardView & RecyclerView**: Material Design components
 
@@ -58,6 +60,7 @@ The goal is to build an android app that can send SMS messages after filtering t
 - The app provides user-friendly explanations about why permissions are needed
 - Permission status is visually indicated with color-coded status messages
 - Contact names are displayed when contacts permission is granted, otherwise phone numbers are used
+- Password configuration is required before the app can send encrypted messages
 
 ### UI Features
 - **Material Design 3**: Modern, beautiful interface following Google's latest design guidelines
@@ -98,7 +101,8 @@ The app intelligently filters SMS messages to forward only important ones:
 - Secure topic storage using EncryptedSharedPreferences with AES256 encryption, filter settings using standard SharedPreferences
 - **Customizable SMS Filtering**: Advanced filtering system with persistent storage of custom rules
 - **Contact Name Resolution**: Local contact lookup to display names instead of phone numbers
-- Sends filtered messages to ntfy.sh via HTTPS POST
+- **Message Encryption**: AES-256-CBC encryption of SMS messages before transmission to ntfy.sh
+- Sends encrypted messages to ntfy.sh via HTTPS POST
 - Handles network operations on background threads
 - Provides user feedback through Toast messages
 - Implements proper error handling without exposing sensitive data
@@ -139,9 +143,9 @@ A comprehensive privacy policy is available in `PRIVACY_POLICY.md` that explains
 The project includes shell scripts for receiving SMS notifications on macOS:
 
 ### Setup
-1. **Create Configuration File**: Create `/Users/Shared/SMS_Syncer_Listener/config.json` with your ntfy.sh topic:
+1. **Create Configuration File**: Create `/Users/Shared/SMS_Syncer_Listener/config.json` with your ntfy.sh topic and encryption password:
    ```bash
-   echo '{"topic_name":"your_topic_name"}' > /Users/Shared/SMS_Syncer_Listener/config.json
+   echo '{"topic_name":"your_topic_name","encryption_password":"your_password"}' > /Users/Shared/SMS_Syncer_Listener/config.json
    ```
 
 2. **Install Dependencies**: Ensure you have the required tools:
@@ -162,11 +166,33 @@ The project includes shell scripts for receiving SMS notifications on macOS:
 - **Default Action**: Running `./manage_ntfy.sh` without arguments will restart the notifier
 
 ### Features
-- **Configuration-Based**: Topic name is read from config file, not hardcoded in scripts
+- **Configuration-Based**: Topic name and encryption password are read from config file, not hardcoded in scripts
+- **Message Decryption**: Automatically decrypts AES-256-CBC encrypted messages from the Android app
 - **Automatic Reconnection**: Handles network disconnections gracefully
 - **Log Management**: Automatic log rotation to prevent disk space issues
 - **Singleton Protection**: Prevents multiple instances from running
-- **System Notifications**: Displays SMS messages as native macOS notifications
+- **System Notifications**: Displays decrypted SMS messages as native macOS notifications
+
+## Encryption System
+
+The app implements end-to-end encryption for SMS messages:
+
+### How It Works
+1. **Android App**: Encrypts SMS messages using AES-256-CBC with a user-defined password
+2. **Transmission**: Encrypted messages are sent to ntfy.sh via HTTPS
+3. **macOS Script**: Decrypts messages using the same password and displays them as notifications
+
+### Security Features
+- **AES-256-CBC Encryption**: Industry-standard encryption algorithm
+- **Password-Based**: User controls the encryption key
+- **Base64 Encoding**: Encrypted data is base64 encoded for safe transmission
+- **IV (Initialization Vector)**: Random IV ensures each message is uniquely encrypted
+- **Shell-Compatible**: Uses OpenSSL for decryption, compatible with standard shell tools
+
+### Configuration
+- **Android**: Set encryption password in the app (minimum 8 characters)
+- **macOS**: Configure the same password in `/Users/Shared/SMS_Syncer_Listener/config.json`
+- **Password Storage**: Passwords are stored securely using Android's EncryptedSharedPreferences
 
 ## Installation
 The app is designed to pass Google Play Protect scans and follows Android security best practices. Users may need to:
