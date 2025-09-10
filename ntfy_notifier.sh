@@ -137,12 +137,10 @@ decrypt_message() {
     
     # Create SHA-256 hash of password to match Java key derivation
     local key_hex=$(echo -n "$password" | openssl dgst -sha256 -binary | xxd -p -c 256)
-    log_info "Key hex: $key_hex"
     
     # Decode base64 to get the combined IV + encrypted data
     local combined_data=$(echo "$encrypted_message" | base64 -d)
     local combined_length=${#combined_data}
-    log_info "Combined data length: $combined_length"
     
     if [ $combined_length -lt 16 ]; then
         log_error "Combined data too short (less than 16 bytes for IV)"
@@ -152,10 +150,6 @@ decrypt_message() {
     # Extract IV (first 16 bytes) and encrypted data
     local iv_hex=$(echo -n "$combined_data" | head -c 16 | xxd -p -c 256)
     local encrypted_data=$(echo -n "$combined_data" | tail -c +17)
-    local encrypted_length=${#encrypted_data}
-    
-    log_info "IV hex: $iv_hex"
-    log_info "Encrypted data length: $encrypted_length"
     
     # Decrypt using OpenSSL with the derived key and IV
     local decrypted=$(echo -n "$encrypted_data" | openssl enc -aes-256-cbc -d -K "$key_hex" -iv "$iv_hex" 2>/dev/null)
@@ -165,7 +159,7 @@ decrypt_message() {
         echo "$decrypted"
         return 0
     else
-        log_error "OpenSSL decryption failed with code: $result"
+        log_error "Failed to decrypt message"
         return 1
     fi
 }
@@ -215,15 +209,10 @@ process_sse() {
             # Process message events
             if [ "$event" = "message" ] && [ -n "$message" ]; then
                 log_info "Processing encrypted message"
-                log_info "Message length: ${#message}"
-                log_info "First 50 chars: ${message:0:50}"
                 
                 # Try to decrypt the message
                 local decrypted_message=$(decrypt_message "$message" "$ENCRYPTION_PASSWORD")
                 local decrypt_result=$?
-                
-                log_info "Decrypt result code: $decrypt_result"
-                log_info "Decrypted message length: ${#decrypted_message}"
                 
                 if [ $decrypt_result -eq 0 ] && [ -n "$decrypted_message" ]; then
                     # Parse the decrypted message (format: "sender|message")
@@ -234,8 +223,6 @@ process_sse() {
                     show_notification "$sms_content" "SMS from $sender"
                 else
                     log_error "Failed to decrypt message or empty result"
-                    log_error "Decrypt result code: $decrypt_result"
-                    log_error "Decrypted message: '$decrypted_message'"
                     show_notification "Encrypted message (decryption failed)" "SMS (Encrypted)"
                 fi
             fi

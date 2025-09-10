@@ -3,7 +3,6 @@ package com.pardhu.smssyncer
 
 import android.app.Activity
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -22,7 +21,6 @@ class MainActivity : Activity() {
         private const val SMS_PERMISSION_REQUEST = 1
     }
 
-    private var smsReceiver: SmsReceiver? = null
     private val executor = Executors.newSingleThreadExecutor()
 
     // UI elements
@@ -90,7 +88,7 @@ class MainActivity : Activity() {
             if (PermissionManager.areAllPermissionsGranted(this)) {
                 // All permissions granted
                 updateStatus("Active - Monitoring SMS", R.color.success)
-                setupSmsReceiver()
+                // SMS receiver is automatically registered via AndroidManifest.xml
             } else {
                 // Permissions not granted - request them immediately
                 updateStatus("Permissions Required", R.color.error)
@@ -121,18 +119,9 @@ class MainActivity : Activity() {
         statusText.setTextColor(getColor(colorRes))
     }
 
-    private fun setupSmsReceiver() {
-        smsReceiver = SmsReceiver()
-        val filter =
-                IntentFilter().apply {
-                    addAction("android.provider.Telephony.SMS_RECEIVED")
-                    priority = 1000
-                }
-        registerReceiver(smsReceiver, filter)
-    }
-
     private fun setupSmsReceiverWithNotification() {
-        setupSmsReceiver()
+        // SMS receiver is automatically registered via AndroidManifest.xml
+        // No need to register programmatically - it works in background
         Toast.makeText(this, "SMS Syncer is running and monitoring messages", Toast.LENGTH_SHORT)
                 .show()
     }
@@ -141,7 +130,7 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        smsReceiver?.let { unregisterReceiver(it) }
+        // No need to unregister receiver - it's registered via manifest
         executor.shutdown()
     }
 

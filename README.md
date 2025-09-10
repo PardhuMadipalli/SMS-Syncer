@@ -97,6 +97,7 @@ The app intelligently filters SMS messages to forward only important ones:
 
 ### Technical Implementation
 - Uses Android's BroadcastReceiver to listen for incoming SMS
+- **Background Operation**: SMS monitoring works even when app is closed from recent apps list
 - Implements proper permission request flow for Android 6.0+
 - Secure topic storage using EncryptedSharedPreferences with AES256 encryption, filter settings using standard SharedPreferences
 - **Customizable SMS Filtering**: Advanced filtering system with persistent storage of custom rules
