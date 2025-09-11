@@ -168,6 +168,8 @@ decrypt_message() {
 show_notification() {
     local message="$1"
     local title="$2"
+    local subtitle="$3"
+    
     # Limit message length for notification (macOS has limits)
     if [ ${#message} -gt 200 ]; then
         message="${message:0:197}..."
@@ -175,9 +177,15 @@ show_notification() {
     
     # Escape quotes for osascript
     message=$(echo "$message" | sed 's/"/\\"/g')
+    title=$(echo "$title" | sed 's/"/\\"/g')
+    subtitle=$(echo "$subtitle" | sed 's/"/\\"/g')
     
-    # Show notification
-    osascript -e "display notification \"$message\" with title \"$title\" sound name \"Glass\"" 2>/dev/null
+    # Show notification with subtitle if provided
+    if [ -n "$subtitle" ]; then
+        osascript -e "display notification \"$message\" with title \"$title\" subtitle \"Received on $subtitle\" sound name \"Glass\"" 2>/dev/null
+    else
+        osascript -e "display notification \"$message\" with title \"$title\" sound name \"Glass\"" 2>/dev/null
+    fi
     
     if [ $? -eq 0 ]; then
         log_success "Notification displayed: ${message}"
@@ -215,12 +223,13 @@ process_sse() {
                 local decrypt_result=$?
                 
                 if [ $decrypt_result -eq 0 ] && [ -n "$decrypted_message" ]; then
-                    # Parse the decrypted message (format: "sender|message")
+                    # Parse the decrypted message (format: "sender|message|device_name")
                     local sender=$(echo "$decrypted_message" | cut -d'|' -f1)
-                    local sms_content=$(echo "$decrypted_message" | cut -d'|' -f2-)
+                    local sms_content=$(echo "$decrypted_message" | cut -d'|' -f2)
+                    local device_name=$(echo "$decrypted_message" | cut -d'|' -f3)
                     
-                    log_success "Decrypted message from: $sender"
-                    show_notification "$sms_content" "SMS from $sender"
+                    log_success "Decrypted message from: $sender on $device_name"
+                    show_notification "$sms_content" "SMS from $sender" "$device_name"
                 else
                     log_error "Failed to decrypt message or empty result"
                     show_notification "Encrypted message (decryption failed)" "SMS (Encrypted)"

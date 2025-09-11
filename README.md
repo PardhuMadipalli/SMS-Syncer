@@ -9,9 +9,10 @@ The goal is to build an android app that can send SMS messages after filtering t
 3. ✅ **SMS Permission Management**: The app automatically checks for SMS read permissions and requests them if not present. Users can grant permissions through the app interface.
 4. ✅ **Contact Name Resolution**: Automatically displays contact names instead of phone numbers in notifications when contacts permission is granted. Falls back to phone numbers if permission is denied.
 5. ✅ **Message Encryption**: SMS messages are encrypted using AES-256-CBC before sending to ntfy.sh. Users set a password that must match the shell script configuration for decryption.
-6. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
-7. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
-8. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
+6. ✅ **Multi-Device Support**: Multiple Android devices can send to the same ntfy.sh topic. Device names are displayed in notifications to distinguish between devices.
+7. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
+8. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
+9. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
 
 ## Security & Google Play Protect Compliance
 
@@ -172,7 +173,7 @@ The project includes shell scripts for receiving SMS notifications on macOS:
 - **Automatic Reconnection**: Handles network disconnections gracefully
 - **Log Management**: Automatic log rotation to prevent disk space issues
 - **Singleton Protection**: Prevents multiple instances from running
-- **System Notifications**: Displays decrypted SMS messages as native macOS notifications
+- **System Notifications**: Displays decrypted SMS messages as native macOS notifications with device identification
 
 ## Encryption System
 
@@ -194,6 +195,39 @@ The app implements end-to-end encryption for SMS messages:
 - **Android**: Set encryption password in the app (minimum 8 characters)
 - **macOS**: Configure the same password in `/Users/Shared/SMS_Syncer_Listener/config.json`
 - **Password Storage**: Passwords are stored securely using Android's EncryptedSharedPreferences
+
+### Multi-Device Support
+Multiple Android devices can send SMS messages to the same ntfy.sh topic:
+
+**Requirements:**
+- All devices must use the **same encryption password**
+- All devices must use the **same ntfy.sh topic**
+- Each device will be identified by its user-defined device name from System Settings
+
+**Notification Display:**
+- **Title**: "SMS from [Contact Name]"
+- **Subtitle**: "Received on [Device Name]"
+- **Message**: The actual SMS content
+
+**Setting Device Names:**
+1. **Android**: Go to **Settings** → **About phone** → **Device name** (or **Settings** → **Connected devices** → **Connection preferences** → **Device name**)
+2. **Set a meaningful name** like "John's Phone", "Work Phone", "Family Tablet", etc.
+3. **The app will automatically use this name** in notifications
+4. **Fallback**: If no custom name is set, the app will use the device model name (e.g., "Pixel 7")
+
+**Example Notifications:**
+```
+Title: SMS from John Doe
+Subtitle: Received on John's Phone
+Message: Hey, are you free for lunch?
+
+Title: SMS from Jane Smith  
+Subtitle: Received on Work Phone
+Message: Meeting moved to 3 PM
+```
+
+**Important Limitation:**
+All devices sharing the same topic **must use the same encryption password**. This is because the shell script uses a single password to decrypt all messages from the topic.
 
 ## Installation
 The app is designed to pass Google Play Protect scans and follows Android security best practices. Users may need to:

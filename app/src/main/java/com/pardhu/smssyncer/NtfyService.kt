@@ -50,8 +50,28 @@ object NtfyService {
 
           connection.setRequestProperty("Title", title)
 
-          // Encrypt the message
-          val messageToEncrypt = "$sanitizedDisplayName|$sanitizedMessage"
+          // Get user-defined device name from System Settings
+          val deviceName = try {
+            val deviceNameFromSettings = android.provider.Settings.Secure.getString(
+              context.contentResolver, 
+              "bluetooth_name"
+            )
+            if (deviceNameFromSettings.isNullOrEmpty()) {
+              // Fallback to global device name
+              android.provider.Settings.Global.getString(
+                context.contentResolver, 
+                "device_name"
+              ) ?: android.os.Build.MODEL ?: "Unknown Device"
+            } else {
+              deviceNameFromSettings
+            }
+          } catch (e: Exception) {
+            // Fallback to model name if settings access fails
+            android.os.Build.MODEL ?: "Unknown Device"
+          }
+          
+          // Encrypt the message with device name
+          val messageToEncrypt = "$sanitizedDisplayName|$sanitizedMessage|$deviceName"
           val encryptedMessage = MessageEncryption.encrypt(messageToEncrypt, password)
           
           if (encryptedMessage == null) {
