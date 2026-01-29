@@ -44,4 +44,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="text">#E6E1E5</color>
+    
+    <!-- Navigation bar icon color for dark mode -->
+    <color name="nav_icon_color">#FFFFFFFF</color>
 </resources>

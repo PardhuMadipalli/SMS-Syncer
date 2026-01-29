@@ -15,7 +15,9 @@ class SmsReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context?, intent: Intent?) {
     try {
       // Check if context is valid
-      if (context == null) return
+      if (context == null) {
+        return
+      }
       
       val bundle = intent?.extras ?: return
       @Suppress("DEPRECATION") val pdus = bundle.get("pdus") as? Array<*> ?: return
@@ -31,13 +33,25 @@ class SmsReceiver : BroadcastReceiver() {
           // Process the SMS message
           processSmsMessage(context, sender, message)
         } catch (e: Exception) {
-          // Handle individual SMS processing errors
-          // Don't crash the entire receiver for one bad SMS
+          // Log individual SMS processing errors
+          LogManager.addLog(
+            context,
+            LogManager.LEVEL_ERROR,
+            "Failed to process SMS",
+            "Error: ${e.javaClass.simpleName} - ${e.message}"
+          )
         }
       }
     } catch (e: Exception) {
-      // Security: Don't expose sensitive information in logs
-      // Log.e(TAG, "Error processing SMS", e)
+      // Log receiver errors
+      context?.let {
+        LogManager.addLog(
+          it,
+          LogManager.LEVEL_ERROR,
+          "SMS Receiver error",
+          "Error: ${e.javaClass.simpleName} - ${e.message}"
+        )
+      }
     }
   }
 

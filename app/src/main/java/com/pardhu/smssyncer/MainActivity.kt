@@ -3,6 +3,7 @@ package com.pardhu.smssyncer
 
 import android.app.Activity
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -21,6 +22,7 @@ class MainActivity : Activity() {
         private const val SMS_PERMISSION_REQUEST = 1
     }
 
+    private var smsReceiver: SmsReceiver? = null
     private val executor = Executors.newSingleThreadExecutor()
 
     // UI elements
@@ -30,6 +32,7 @@ class MainActivity : Activity() {
     private lateinit var configureTopicButton: MaterialButton
     private lateinit var navTopicItem: LinearLayout
     private lateinit var navFiltersItem: LinearLayout
+    private lateinit var navLogsItem: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +46,7 @@ class MainActivity : Activity() {
         configureTopicButton = findViewById(R.id.configureTopicButton)
         navTopicItem = findViewById(R.id.navTopicItem)
         navFiltersItem = findViewById(R.id.navFiltersItem)
+        navLogsItem = findViewById(R.id.navLogsItem)
 
         // Set up button click listeners
         requestPermissionButton.setOnClickListener { requestAllPermissions() }
@@ -119,9 +123,17 @@ class MainActivity : Activity() {
         statusText.setTextColor(getColor(colorRes))
     }
 
+    private fun setupSmsReceiver() {
+        smsReceiver = SmsReceiver()
+        val filter = IntentFilter().apply {
+            addAction("android.provider.Telephony.SMS_RECEIVED")
+            priority = 1000
+        }
+        registerReceiver(smsReceiver, filter)
+    }
+
     private fun setupSmsReceiverWithNotification() {
-        // SMS receiver is automatically registered via AndroidManifest.xml
-        // No need to register programmatically - it works in background
+        setupSmsReceiver()
         Toast.makeText(this, "SMS Syncer is running and monitoring messages", Toast.LENGTH_SHORT)
                 .show()
     }
@@ -130,7 +142,7 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // No need to unregister receiver - it's registered via manifest
+        smsReceiver?.let { unregisterReceiver(it) }
         executor.shutdown()
     }
 
@@ -143,16 +155,17 @@ class MainActivity : Activity() {
     }
 
     private fun setupBottomNavigation() {
-        // Find the navigation items from the included layout
-        val navTopicItem = findViewById<LinearLayout>(R.id.navTopicItem)
-        val navFiltersItem = findViewById<LinearLayout>(R.id.navFiltersItem)
-        
         navTopicItem.setOnClickListener {
             showTopicConfigDialog()
         }
         
         navFiltersItem.setOnClickListener {
             val intent = android.content.Intent(this, FilterSettingsActivity::class.java)
+            startActivity(intent)
+        }
+        
+        navLogsItem.setOnClickListener {
+            val intent = android.content.Intent(this, LogsActivity::class.java)
             startActivity(intent)
         }
     }

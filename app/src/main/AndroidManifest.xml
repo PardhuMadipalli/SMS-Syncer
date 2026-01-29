@@ -55,6 +55,13 @@
             android:theme="@style/Theme.SMSSyncer"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".LogsActivity"
+            android:exported="false"
+            android:label="Error Logs"
+            android:theme="@style/Theme.SMSSyncer"
+            android:parentActivityName=".MainActivity" />
+
         <!-- SMS Receiver for background processing -->
         <receiver
             android:name=".SmsReceiver"

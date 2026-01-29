@@ -13,6 +13,7 @@ The goal is to build an android app that can send SMS messages after filtering t
 7. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
 8. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
 9. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
+10. ✅ **Error Logs**: Dedicated logs screen accessible from the bottom navigation bar that displays all error messages with timestamps, severity levels, and detailed information for easy debugging. Stores up to 1000 most recent log entries.
 
 ## Security & Google Play Protect Compliance
 
@@ -69,13 +70,14 @@ The goal is to build an android app that can send SMS messages after filtering t
 - **XML-based Layouts**: Traditional Android XML layouts with Material Design components
 - **Card-based Layout**: Information organized in clean, elevated cards for better readability
 - **Top App Bar**: Professional toolbar with settings and help menu options
-- **Bottom Navigation**: Easy access to topic configuration and filter customization
+- **Bottom Navigation**: Easy access to topic configuration, filter customization, and error logs
 - **Smart Status Updates**: Status indicators with intelligent notifications only when status changes
 - **Secure Topic Configuration**: Enhanced dialog with Material Design input fields and validation
 - **Masked Topic Display**: Privacy-focused topic name masking (e.g., "ab***cd" for "abcdef")
 - **Smart Action Buttons**: Context-aware buttons that appear when needed
 - **Filter Customization Interface**: Dedicated activity page for modifying SMS filtering rules with chip-based editing and outlined action buttons
-- **Scrollable Content**: All filter sections are properly scrollable for better usability
+- **Error Logs Screen**: Dedicated logs viewer with card-based log entries showing timestamps, severity levels, and detailed error information for debugging
+- **Scrollable Content**: All filter sections and logs are properly scrollable for better usability
 - **Color-coded Status System**:
   - 🟢 Green: Active (permissions granted, topic configured)
   - 🟠 Orange: Topic configuration required
@@ -98,12 +100,17 @@ The app intelligently filters SMS messages to forward only important ones:
 
 ### Technical Implementation
 - Uses Android's BroadcastReceiver to listen for incoming SMS
+- **Dual Receiver Registration**: Both manifest-declared and programmatic registration for maximum reliability
+  - **Manifest Receiver**: Ensures SMS monitoring works even when app is completely closed
+  - **Programmatic Receiver**: Provides additional reliability when app is running
+  - **High Priority**: Programmatic receiver uses priority 1000 for immediate processing
 - **Background Operation**: SMS monitoring works even when app is closed from recent apps list
 - Implements proper permission request flow for Android 6.0+
 - Secure topic storage using EncryptedSharedPreferences with AES256 encryption, filter settings using standard SharedPreferences
 - **Customizable SMS Filtering**: Advanced filtering system with persistent storage of custom rules
 - **Contact Name Resolution**: Local contact lookup to display names instead of phone numbers
 - **Message Encryption**: AES-256-CBC encryption of SMS messages before transmission to ntfy.sh
+- **Error Logging**: Comprehensive error logging system that captures and stores errors with timestamps, severity levels, and detailed information for debugging
 - Sends encrypted messages to ntfy.sh via HTTPS POST
 - Handles network operations on background threads
 - Provides user feedback through Toast messages
@@ -214,6 +221,18 @@ Multiple Android devices can send SMS messages to the same ntfy.sh topic:
 2. **Set a meaningful name** like "John's Phone", "Work Phone", "Family Tablet", etc.
 3. **The app will automatically use this name** in notifications
 4. **Fallback**: If no custom name is set, the app will use the device model name (e.g., "Pixel 7")
+
+**Android Version Compatibility:**
+- **Android 4.2+ (API 17+)**: Full support for user-defined device names
+- **Android 4.1 and below**: Uses device model name as fallback
+- **All versions**: Graceful fallback to hardware identifiers if settings access fails
+
+**Device Name Detection Methods (in order of preference):**
+1. **Bluetooth Name** (`bluetooth_name`) - User-defined name from Bluetooth settings
+2. **Global Device Name** (`device_name`) - System-wide device name (Android 4.2+)
+3. **System Property** (`ro.product.device`) - Hardware device identifier
+4. **Build.DEVICE** - Android build device name
+5. **Build.MODEL** - Device model name (final fallback)
 
 **Example Notifications:**
 ```

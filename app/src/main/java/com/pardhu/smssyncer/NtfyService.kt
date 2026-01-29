@@ -17,14 +17,29 @@ object NtfyService {
       val topic = TopicManager.getTopic(context)
       if (topic.isNullOrEmpty()) {
         // Topic not configured, cannot send message
+        LogManager.addLog(
+          context,
+          LogManager.LEVEL_WARNING,
+          "Topic not configured",
+          "Cannot send SMS - ntfy.sh topic is not configured"
+        )
         return
       }
       
       val password = PasswordManager.getPassword(context)
       if (password.isNullOrEmpty()) {
         // Password not configured, cannot encrypt message
+        LogManager.addLog(
+          context,
+          LogManager.LEVEL_WARNING,
+          "Password not configured",
+          "Cannot send SMS - encryption password is not configured"
+        )
         return
       }
+      
+      // Sanitize display name early for use in error logging
+      val sanitizedDisplayName = displayName?.take(50) ?: "Unknown"
     
       val executor = Executors.newSingleThreadExecutor()
       executor.execute {
@@ -44,29 +59,59 @@ object NtfyService {
           }
 
           // Create payload with sanitized data
-          val sanitizedDisplayName = displayName?.take(50) ?: "Unknown"
           val sanitizedMessage = (message?.take(500) ?: "").trimIndent()
           val title = "SMS from $sanitizedDisplayName"
 
           connection.setRequestProperty("Title", title)
 
-          // Get user-defined device name from System Settings
+          // Get user-defined device name from System Settings with Android version compatibility
           val deviceName = try {
-            val deviceNameFromSettings = android.provider.Settings.Secure.getString(
-              context.contentResolver, 
-              "bluetooth_name"
-            )
-            if (deviceNameFromSettings.isNullOrEmpty()) {
-              // Fallback to global device name
-              android.provider.Settings.Global.getString(
+            // Try different methods based on Android version and availability
+            var deviceNameFromSettings: String? = null
+            
+            // Method 1: Try bluetooth_name (most common user-defined name)
+            try {
+              deviceNameFromSettings = android.provider.Settings.Secure.getString(
                 context.contentResolver, 
-                "device_name"
-              ) ?: android.os.Build.MODEL ?: "Unknown Device"
-            } else {
-              deviceNameFromSettings
+                "bluetooth_name"
+              )
+            } catch (e: Exception) {
+              // Settings.Secure might not be available on older versions
             }
+            
+            // Method 2: Try device_name from Global settings (Android 4.2+)
+            if (deviceNameFromSettings.isNullOrEmpty()) {
+              try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                  deviceNameFromSettings = android.provider.Settings.Global.getString(
+                    context.contentResolver, 
+                    "device_name"
+                  )
+                }
+              } catch (e: Exception) {
+                // Settings.Global might not be available
+              }
+            }
+            
+            // Method 3: Try system property (older Android versions)
+            if (deviceNameFromSettings.isNullOrEmpty()) {
+              try {
+                deviceNameFromSettings = System.getProperty("ro.product.device")
+              } catch (e: Exception) {
+                // System properties might not be accessible
+              }
+            }
+            
+            // Method 4: Try Build.DEVICE (hardware device name)
+            if (deviceNameFromSettings.isNullOrEmpty()) {
+              deviceNameFromSettings = android.os.Build.DEVICE
+            }
+            
+            // Final fallback to Build.MODEL
+            deviceNameFromSettings ?: android.os.Build.MODEL ?: "Unknown Device"
+            
           } catch (e: Exception) {
-            // Fallback to model name if settings access fails
+            // Ultimate fallback to model name if all methods fail
             android.os.Build.MODEL ?: "Unknown Device"
           }
           
@@ -76,6 +121,12 @@ object NtfyService {
           
           if (encryptedMessage == null) {
             // Encryption failed
+            LogManager.addLog(
+              context,
+              LogManager.LEVEL_ERROR,
+              "Message encryption failed",
+              "Failed to encrypt SMS from $sanitizedDisplayName"
+            )
             NotificationHelper.showNotification(
                     false,
                     "SMS encryption failed",
@@ -99,6 +150,13 @@ object NtfyService {
                     "Message from $sanitizedDisplayName sent to laptop"
             )
           } else {
+            // Log failed response
+            LogManager.addLog(
+              context,
+              LogManager.LEVEL_ERROR,
+              "SMS forwarding failed",
+              "HTTP ${connection.responseCode}: Failed to send message from $sanitizedDisplayName to ntfy.sh"
+            )
             // Show android notification that message was not sent
             NotificationHelper.showNotification(
                     false,
@@ -107,8 +165,14 @@ object NtfyService {
             )
           }
         } catch (e: Exception) {
+          // Log the error with details
+          LogManager.addLog(
+            context,
+            LogManager.LEVEL_ERROR,
+            "SMS forwarding error",
+            "Error sending message from $sanitizedDisplayName: ${e.javaClass.simpleName} - ${e.message}"
+          )
           // Show android notification that message was not sent due to error
-          val sanitizedDisplayName = displayName?.take(50) ?: "Unknown"
           NotificationHelper.showNotification(
                   false,
                   "SMS forwarding error",
@@ -121,6 +185,12 @@ object NtfyService {
       }
     } catch (e: Exception) {
       // Handle any errors in the main function
+      LogManager.addLog(
+        context,
+        LogManager.LEVEL_ERROR,
+        "NtfyService error",
+        "Unexpected error: ${e.javaClass.simpleName} - ${e.message}"
+      )
     }
   }
 }

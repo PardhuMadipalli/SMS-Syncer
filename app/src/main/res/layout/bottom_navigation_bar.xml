@@ -42,7 +42,7 @@
                 android:layout_height="24dp"
                 android:contentDescription="Topic settings icon"
                 android:src="@drawable/ic_topic"
-                app:tint="@color/on_surface_variant"
+                app:tint="@color/nav_icon_color"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:text="Topic"
                 android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                android:textColor="@color/on_surface_variant" />
+                android:textColor="@color/nav_icon_color" />
 
         </LinearLayout>
 
@@ -72,7 +72,7 @@
                 android:layout_height="24dp"
                 android:contentDescription="Filters menu icon"
                 android:src="@drawable/ic_filter"
-                app:tint="@color/on_surface_variant"
+                app:tint="@color/nav_icon_color"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -80,7 +80,37 @@
                 android:layout_height="wrap_content"
                 android:text="Filters"
                 android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                android:textColor="@color/on_surface_variant" />
+                android:textColor="@color/nav_icon_color" />
+
+        </LinearLayout>
+
+        <!-- Logs Navigation Item -->
+        <LinearLayout
+            android:id="@+id/navLogsItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="Logs menu icon"
+                android:src="@drawable/ic_logs"
+                app:tint="@color/nav_icon_color"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Logs"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="@color/nav_icon_color" />
 
         </LinearLayout>
 

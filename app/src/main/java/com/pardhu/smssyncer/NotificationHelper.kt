@@ -43,8 +43,10 @@ object NotificationHelper {
         }
 
         // Create intent for notification tap action
+        // For error notifications, open LogsActivity; for success, open MainActivity
+        val targetActivity = if (isSuccess) MainActivity::class.java else LogsActivity::class.java
         val intent =
-                Intent(appContext, MainActivity::class.java).apply {
+                Intent(appContext, targetActivity).apply {
                   flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
         val pendingIntent =
