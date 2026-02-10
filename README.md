@@ -13,7 +13,8 @@ The goal is to build an android app that can send SMS messages after filtering t
 7. ✅ **Secure Topic Configuration**: Users can configure their ntfy.sh topic name securely with confirmation dialog. The topic is stored using Android's EncryptedSharedPreferences.
 8. ✅ **Topic Display**: The app shows a masked version of the configured topic (first 2 and last 2 characters visible).
 9. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
-10. ✅ **Error Logs**: Dedicated logs screen accessible from the bottom navigation bar that displays all error messages with timestamps, severity levels, and detailed information for easy debugging. Stores up to 1000 most recent log entries.
+10. ✅ **Error Logs**: Dedicated logs screen accessible from the bottom navigation bar that displays all error messages with timestamps, severity levels, and detailed information for easy debugging. Stores up to 1000 most recent log entries. Log text is selectable for easy copying.
+11. ✅ **Network Reliability**: Automatic retry mechanism with exponential backoff for failed message transmissions. Handles network interruptions gracefully with up to 3 retry attempts.
 
 ## Security & Google Play Protect Compliance
 
@@ -76,7 +77,7 @@ The goal is to build an android app that can send SMS messages after filtering t
 - **Masked Topic Display**: Privacy-focused topic name masking (e.g., "ab***cd" for "abcdef")
 - **Smart Action Buttons**: Context-aware buttons that appear when needed
 - **Filter Customization Interface**: Dedicated activity page for modifying SMS filtering rules with chip-based editing and outlined action buttons
-- **Error Logs Screen**: Dedicated logs viewer with card-based log entries showing timestamps, severity levels, and detailed error information for debugging
+- **Error Logs Screen**: Dedicated logs viewer with card-based log entries showing timestamps, severity levels, and detailed error information for debugging. All text fields are selectable for easy copying via long-press.
 - **Scrollable Content**: All filter sections and logs are properly scrollable for better usability
 - **Color-coded Status System**:
   - 🟢 Green: Active (permissions granted, topic configured)
@@ -110,6 +111,8 @@ The app intelligently filters SMS messages to forward only important ones:
 - **Customizable SMS Filtering**: Advanced filtering system with persistent storage of custom rules
 - **Contact Name Resolution**: Local contact lookup to display names instead of phone numbers
 - **Message Encryption**: AES-256-CBC encryption of SMS messages before transmission to ntfy.sh
+- **Network Reliability**: Automatic retry mechanism (up to 3 attempts) with exponential backoff for handling network failures and connection issues
+- **Connection Management**: Proper HTTP connection handling with increased timeouts (15s) and connection closure to prevent "unexpected end of stream" errors
 - **Error Logging**: Comprehensive error logging system that captures and stores errors with timestamps, severity levels, and detailed information for debugging
 - Sends encrypted messages to ntfy.sh via HTTPS POST
 - Handles network operations on background threads

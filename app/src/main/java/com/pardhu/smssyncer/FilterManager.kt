@@ -189,22 +189,6 @@ object FilterManager {
         }
     }
 
-    /**
-     * Checks if filters have been customized
-     */
-    fun areFiltersCustomized(context: Context): Boolean {
-        return try {
-            val prefs = getPrefs(context)
-            prefs.contains(KEY_IMPORTANT_SENDERS) ||
-                    prefs.contains(KEY_IMPORTANT_KEYWORDS) ||
-                    prefs.contains(KEY_SPAM_KEYWORDS) ||
-                    prefs.contains(KEY_OTP_PATTERN) ||
-                    prefs.contains(KEY_FORWARD_ALL)
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     }

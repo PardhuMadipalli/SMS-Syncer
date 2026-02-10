@@ -6,6 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.content.edit
 
 /** Manages error logs for debugging purposes */
 object LogManager {
@@ -84,7 +85,7 @@ object LogManager {
     /** Clear all logs */
     fun clearLogs(context: Context) {
         try {
-            getPrefs(context).edit().remove(KEY_LOGS).apply()
+            getPrefs(context).edit { remove(KEY_LOGS) }
         } catch (e: Exception) {
             // Silently fail
         }
