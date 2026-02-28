@@ -1,6 +1,8 @@
 #!/bin/zsh
 
 # set -x
+
+# Uncomment the next line when using in the application script
 # exec &>> /tmp/ntfy_notifier.log
 
 # ntfy.sh Notification Manager

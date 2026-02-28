@@ -38,7 +38,7 @@
         android:id="@+id/dialogMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enter your ntfy.sh topic name. This will be stored securely on your device using encryption."
+        android:text="Enter your ntfy.sh topic name."
         android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
         android:textColor="@color/on_surface_variant"
         android:layout_marginBottom="24dp" />

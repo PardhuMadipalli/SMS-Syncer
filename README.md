@@ -106,6 +106,11 @@ The app intelligently filters SMS messages to forward only important ones:
   - **Programmatic Receiver**: Provides additional reliability when app is running
   - **High Priority**: Programmatic receiver uses priority 1000 for immediate processing
 - **Background Operation**: SMS monitoring works even when app is closed from recent apps list
+- **Multi-Part SMS Handling**: Intelligent buffering system that combines multi-part SMS messages (longer than 160 characters) into a single notification, matching Google Messages app behavior
+  - Automatic detection and assembly of message parts
+  - Handles out-of-order delivery
+  - 5-second timeout with graceful handling of missing parts
+  - Memory-efficient with automatic cleanup
 - Implements proper permission request flow for Android 6.0+
 - Secure topic storage using EncryptedSharedPreferences with AES256 encryption, filter settings using standard SharedPreferences
 - **Customizable SMS Filtering**: Advanced filtering system with persistent storage of custom rules
@@ -176,6 +181,24 @@ The project includes shell scripts for receiving SMS notifications on macOS:
 - **Check Status**: `./manage_ntfy.sh status`
 - **View Logs**: `./manage_ntfy.sh logs`
 - **Default Action**: Running `./manage_ntfy.sh` without arguments will restart the notifier
+
+### How to run a macOS application
+
+- Using Automator application create a new application.
+
+1. `Run AppleScript` with the following contents
+  ```
+  on run {input, parameters}
+	  return POSIX path of (path to me) & "Contents/" & "Resources"
+  end run
+  ```
+2. `Run Shell Script`
+  Copy paste the contents of [manage_ntfy.sh](./manage_ntfy.sh) here.
+
+- Create the application.
+- Now copy the file [ntfy_notifier.sh](./ntfy_notifier.sh) to the application's relative path `Contents/Resources`.
+- Start the application
+
 
 ### Features
 - **Configuration-Based**: Topic name and encryption password are read from config file, not hardcoded in scripts

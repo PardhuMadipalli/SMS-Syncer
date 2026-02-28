@@ -31,7 +31,6 @@ object NotificationHelper {
                 appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create notification channel for Android 8.0+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
           val channel =
                   NotificationChannel(
                                   NOTIFICATION_CHANNEL_ID,
@@ -40,9 +39,8 @@ object NotificationHelper {
                           )
                           .apply { description = "Notifications for SMS forwarding status" }
           notificationManager.createNotificationChannel(channel)
-        }
 
-        // Create intent for notification tap action
+          // Create intent for notification tap action
         // For error notifications, open LogsActivity; for success, open MainActivity
         val targetActivity = if (isSuccess) MainActivity::class.java else LogsActivity::class.java
         val intent =

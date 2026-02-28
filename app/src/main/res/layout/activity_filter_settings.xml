@@ -282,7 +282,8 @@
         android:padding="16dp"
         android:background="@color/surface"
         android:elevation="8dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:fitsSystemWindows="true">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/resetButton"

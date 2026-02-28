@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="@color/surface_variant"
-    android:elevation="8dp">
+    android:elevation="8dp"
+    android:orientation="vertical">
 
     <!-- Top Border/Separator -->
     <View
@@ -15,14 +15,15 @@
 
     <!-- Navigation Items Container -->
     <LinearLayout
+        android:id="@+id/navItemsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:paddingTop="6dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp">
 
         <!-- Topic Navigation Item -->
         <LinearLayout
@@ -30,20 +31,20 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:orientation="vertical"
             android:padding="8dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:layout_marginBottom="4dp"
                 android:contentDescription="Topic settings icon"
                 android:src="@drawable/ic_topic"
-                app:tint="@color/nav_icon_color"
-                android:layout_marginBottom="4dp" />
+                app:tint="@color/nav_icon_color" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -60,20 +61,20 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:orientation="vertical"
             android:padding="8dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:layout_marginBottom="4dp"
                 android:contentDescription="Filters menu icon"
                 android:src="@drawable/ic_filter"
-                app:tint="@color/nav_icon_color"
-                android:layout_marginBottom="4dp" />
+                app:tint="@color/nav_icon_color" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -90,20 +91,20 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:orientation="vertical"
             android:padding="8dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:layout_marginBottom="4dp"
                 android:contentDescription="Logs menu icon"
                 android:src="@drawable/ic_logs"
-                app:tint="@color/nav_icon_color"
-                android:layout_marginBottom="4dp" />
+                app:tint="@color/nav_icon_color" />
 
             <TextView
                 android:layout_width="wrap_content"

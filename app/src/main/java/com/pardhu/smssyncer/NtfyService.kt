@@ -96,9 +96,13 @@ object NtfyService {
         setRequestProperty("Content-Type", "text/plain")
         setRequestProperty("User-Agent", "SMSSyncer/1.0")
         setRequestProperty("Connection", "close") // Prevent connection reuse
+        setRequestProperty("Cache-Control", "no-cache") // Disable caching
+        useCaches = false // Disable URL connection caching
         doOutput = true
-        connectTimeout = 15000
-        readTimeout = 15000
+        doInput = true // Explicitly enable input
+        connectTimeout = 20000 // Increased to 20s
+        readTimeout = 20000 // Increased to 20s
+        instanceFollowRedirects = true
       }
 
       val sanitizedMessage = (message?.take(500) ?: "").trimIndent()
@@ -108,36 +112,49 @@ object NtfyService {
       // Get device name
       val deviceName = try {
         var deviceNameFromSettings: String? = null
-        
+
         try {
-          deviceNameFromSettings = android.provider.Settings.Secure.getString(
-            context.contentResolver, 
-            "bluetooth_name"
-          )
+            deviceNameFromSettings = android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                "bluetooth_name"
+            )
         } catch (e: Exception) { }
         
+        // Try device_name first - check System settings (user-modified name)
         if (deviceNameFromSettings.isNullOrEmpty()) {
           try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-              deviceNameFromSettings = android.provider.Settings.Global.getString(
-                context.contentResolver, 
+              deviceNameFromSettings = android.provider.Settings.System.getString(
+                context.contentResolver,
                 "device_name"
               )
-            }
           } catch (e: Exception) { }
         }
         
+        // Try device_name from Global settings if System didn't have it
+        if (deviceNameFromSettings.isNullOrEmpty()) {
+          try {
+              deviceNameFromSettings = android.provider.Settings.Global.getString(
+                context.contentResolver,
+                "device_name"
+              )
+          } catch (e: Exception) { }
+        }
+        
+        // Fall back to system property
         if (deviceNameFromSettings.isNullOrEmpty()) {
           try {
             deviceNameFromSettings = System.getProperty("ro.product.device")
           } catch (e: Exception) { }
         }
         
+        // Fall back to Build.DEVICE
         if (deviceNameFromSettings.isNullOrEmpty()) {
           deviceNameFromSettings = android.os.Build.DEVICE
         }
         
-        deviceNameFromSettings ?: android.os.Build.MODEL ?: "Unknown Device"
+        deviceNameFromSettings.takeIf { !it.isNullOrEmpty() } 
+          ?: android.os.Build.MODEL 
+          ?: "Unknown Device"
       } catch (e: Exception) {
         android.os.Build.MODEL ?: "Unknown Device"
       }
@@ -161,20 +178,35 @@ object NtfyService {
         return false
       }
 
-      // Send encrypted request
+      // Connect explicitly before writing
+      connection.connect()
+      
+      // Send encrypted request with proper stream handling
       connection.outputStream.use { outputStream ->
         val input = encryptedMessage.toByteArray(StandardCharsets.UTF_8)
         outputStream.write(input)
         outputStream.flush()
       }
 
-      // Read response to ensure connection completes
+      // Read response code and consume response body
       val responseCode = connection.responseCode
       
+      // Always consume the response stream to complete the request
+      try {
+        if (responseCode in 200..299) {
+          connection.inputStream.use { inputStream ->
+            inputStream.readBytes() // Consume success response
+          }
+        } else {
+          connection.errorStream?.use { errorStream ->
+            errorStream.readBytes() // Consume error response
+          }
+        }
+      } catch (e: Exception) {
+        // Ignore stream reading errors after getting response code
+      }
+      
       if (responseCode == 200) {
-        // Consume response body to prevent connection issues
-        connection.inputStream.use { it.readBytes() }
-        
         NotificationHelper.showNotification(
           true,
           "SMS forwarded successfully",
@@ -190,6 +222,15 @@ object NtfyService {
         )
         return false
       }
+    } catch (e: java.io.IOException) {
+      // Specific handling for IOException which includes "unexpected end of stream"
+      LogManager.addLog(
+        context,
+        LogManager.LEVEL_ERROR,
+        "Network I/O error",
+        "Attempt $attempt from $sanitizedDisplayName: ${e.message}"
+      )
+      throw e
     } catch (e: Exception) {
       LogManager.addLog(
         context,
@@ -199,7 +240,11 @@ object NtfyService {
       )
       throw e
     } finally {
-      connection?.disconnect()
+      try {
+        connection?.disconnect()
+      } catch (e: Exception) {
+        // Ignore disconnect errors
+      }
     }
   }
 }

@@ -32,6 +32,13 @@ class FilterSettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filter_settings)
         
+        // Handle window insets for edge-to-edge display
+        window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+            val systemBars = insets.systemWindowInsets
+            view.setPadding(0, systemBars.top, 0, 0)
+            insets
+        }
+        
         initializeViews()
         loadCurrentFilters()
         setupListeners()

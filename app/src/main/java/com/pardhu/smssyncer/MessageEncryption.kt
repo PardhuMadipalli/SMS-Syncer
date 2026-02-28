@@ -11,8 +11,7 @@ object MessageEncryption {
     
     private const val ALGORITHM = "AES"
     private const val TRANSFORMATION = "AES/CBC/PKCS5Padding"
-    private const val CHARSET = "UTF-8"
-    
+
     /**
      * Encrypts a message using the provided password
      * Returns base64 encoded string in format: IV:ENCRYPTED_DATA

@@ -10,6 +10,7 @@ class SmsReceiver : BroadcastReceiver() {
 
   companion object {
     private const val TAG = "SMSSyncer"
+    private val messageBuffer = SmsMessageBuffer()
   }
 
   override fun onReceive(context: Context?, intent: Intent?) {
@@ -29,9 +30,12 @@ class SmsReceiver : BroadcastReceiver() {
 
           val sender = sms.originatingAddress
           val message = sms.messageBody
+          val timestamp = sms.timestampMillis
 
-          // Process the SMS message
-          processSmsMessage(context, sender, message)
+          // Buffer the message part and process when complete
+          messageBuffer.addPart(sender ?: "", message ?: "", timestamp) { completeMessage ->
+            processSmsMessage(context, sender, completeMessage)
+          }
         } catch (e: Exception) {
           // Log individual SMS processing errors
           LogManager.addLog(

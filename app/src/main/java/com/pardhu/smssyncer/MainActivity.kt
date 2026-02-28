@@ -38,6 +38,13 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         
         setContentView(R.layout.activity_main)
+        
+        // Handle window insets for edge-to-edge display
+        window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+            val systemBars = insets.systemWindowInsets
+            view.setPadding(0, systemBars.top, 0, 0)
+            insets
+        }
 
         // Initialize UI elements
         statusText = findViewById(R.id.statusText)
@@ -155,6 +162,14 @@ class MainActivity : Activity() {
     }
 
     private fun setupBottomNavigation() {
+        // Handle bottom insets for gesture navigation
+        val bottomNav = findViewById<View>(R.id.bottomNavigation)
+        bottomNav.setOnApplyWindowInsetsListener { view, insets ->
+            val systemBars = insets.systemWindowInsets
+            view.setPadding(0, 0, 0, systemBars.bottom)
+            insets
+        }
+        
         navTopicItem.setOnClickListener {
             showTopicConfigDialog()
         }
