@@ -40,11 +40,7 @@ object FilterManager {
         return try {
             val prefs = getPrefs(context)
             val stored = prefs.getString(KEY_IMPORTANT_SENDERS, null)
-            if (stored != null) {
-                stored.split(",").filter { it.isNotEmpty() }
-            } else {
-                DEFAULT_IMPORTANT_SENDERS
-            }
+            stored?.split(",")?.filter { it.isNotEmpty() } ?: DEFAULT_IMPORTANT_SENDERS
         } catch (e: Exception) {
             DEFAULT_IMPORTANT_SENDERS
         }
@@ -57,11 +53,7 @@ object FilterManager {
         return try {
             val prefs = getPrefs(context)
             val stored = prefs.getString(KEY_IMPORTANT_KEYWORDS, null)
-            if (stored != null) {
-                stored.split(",").filter { it.isNotEmpty() }
-            } else {
-                DEFAULT_IMPORTANT_KEYWORDS
-            }
+            stored?.split(",")?.filter { it.isNotEmpty() } ?: DEFAULT_IMPORTANT_KEYWORDS
         } catch (e: Exception) {
             DEFAULT_IMPORTANT_KEYWORDS
         }
@@ -74,11 +66,7 @@ object FilterManager {
         return try {
             val prefs = getPrefs(context)
             val stored = prefs.getString(KEY_SPAM_KEYWORDS, null)
-            if (stored != null) {
-                stored.split(",").filter { it.isNotEmpty() }
-            } else {
-                DEFAULT_SPAM_KEYWORDS
-            }
+            stored?.split(",")?.filter { it.isNotEmpty() } ?: DEFAULT_SPAM_KEYWORDS
         } catch (e: Exception) {
             DEFAULT_SPAM_KEYWORDS
         }

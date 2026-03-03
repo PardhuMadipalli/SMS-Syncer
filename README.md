@@ -184,20 +184,17 @@ The project includes shell scripts for receiving SMS notifications on macOS:
 
 ### How to run a macOS application
 
-- Using Automator application create a new application.
-
-1. `Run AppleScript` with the following contents
+1. Open Automator application on your mac.
+2. `Run AppleScript` with the following contents
   ```
   on run {input, parameters}
 	  return POSIX path of (path to me) & "Contents/" & "Resources"
   end run
   ```
-2. `Run Shell Script`
-  Copy paste the contents of [manage_ntfy.sh](./manage_ntfy.sh) here.
-
-- Create the application.
-- Now copy the file [ntfy_notifier.sh](./ntfy_notifier.sh) to the application's relative path `Contents/Resources`.
-- Start the application
+3. `Run Shell Script` by choosing "Pass Input" -> "as arguments". Copy paste the contents of [manage_ntfy.sh](./manage_ntfy.sh) here.
+4. Create the application. 
+5. Now copy the file [ntfy_notifier.sh](./ntfy_notifier.sh) to the application's relative path `Contents/Resources`. 
+6. Start the application
 
 
 ### Features
