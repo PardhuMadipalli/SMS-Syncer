@@ -15,6 +15,7 @@ The goal is to build an android app that can send SMS messages after filtering t
 9. ✅ **Material Design 3 UI**: Modern, beautiful interface following Google's latest design guidelines with card-based layout, professional icons, and enhanced user experience.
 10. ✅ **Error Logs**: Dedicated logs screen accessible from the bottom navigation bar that displays all error messages with timestamps, severity levels, and detailed information for easy debugging. Stores up to 1000 most recent log entries. Log text is selectable for easy copying.
 11. ✅ **Network Reliability**: Automatic retry mechanism with exponential backoff for failed message transmissions. Handles network interruptions gracefully with up to 3 retry attempts.
+12. ✅ **Separate Notification Channels**: Success and error notifications use separate Android notification channels ("Success notifications" and "Error notifications"). This lets users independently enable or disable each type from the Android system notification settings — for example, keeping error alerts on while silencing routine success notifications. Error notifications use high importance so they stand out.
 
 ## Security & Google Play Protect Compliance
 

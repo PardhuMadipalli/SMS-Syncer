@@ -11,8 +11,13 @@ import androidx.core.app.NotificationCompat
 /** Handles Android notifications for SMS forwarding status */
 object NotificationHelper {
 
-  // Notification constants
-  private const val NOTIFICATION_CHANNEL_ID = "sms_syncer_channel"
+  // Notification channel IDs
+  // Separate channels let the user independently enable/disable success vs error
+  // notifications from the Android system notification settings.
+  private const val NOTIFICATION_CHANNEL_SUCCESS_ID = "sms_syncer_success_channel"
+  private const val NOTIFICATION_CHANNEL_ERROR_ID = "sms_syncer_error_channel"
+  // Legacy single channel from older app versions, kept only so it can be deleted.
+  private const val NOTIFICATION_CHANNEL_LEGACY_ID = "sms_syncer_channel"
   private const val NOTIFICATION_SUCCESS_ID = 1001
   private const val NOTIFICATION_FAILURE_ID = 1002
 
@@ -30,17 +35,37 @@ object NotificationHelper {
         val notificationManager =
                 appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create notification channel for Android 8.0+
-          val channel =
-                  NotificationChannel(
-                                  NOTIFICATION_CHANNEL_ID,
-                                  "SMS Syncer Notifications",
-                                  NotificationManager.IMPORTANCE_DEFAULT
-                          )
-                          .apply { description = "Notifications for SMS forwarding status" }
-          notificationManager.createNotificationChannel(channel)
+        // Create both notification channels for Android 8.0+.
+        // Creating them is idempotent, so it's safe to call every time.
+        val successChannel =
+                NotificationChannel(
+                                NOTIFICATION_CHANNEL_SUCCESS_ID,
+                                "Success notifications",
+                                NotificationManager.IMPORTANCE_DEFAULT
+                        )
+                        .apply {
+                          description = "Notifications when an SMS is forwarded successfully"
+                        }
+        val errorChannel =
+                NotificationChannel(
+                                NOTIFICATION_CHANNEL_ERROR_ID,
+                                "Error notifications",
+                                NotificationManager.IMPORTANCE_HIGH
+                        )
+                        .apply {
+                          description = "Notifications when SMS forwarding or encryption fails"
+                        }
+        notificationManager.createNotificationChannel(successChannel)
+        notificationManager.createNotificationChannel(errorChannel)
 
-          // Create intent for notification tap action
+        // Remove the legacy single channel from older versions so it no longer
+        // shows up as a stale, unused channel in the system notification settings.
+        notificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL_LEGACY_ID)
+
+        val channelId =
+                if (isSuccess) NOTIFICATION_CHANNEL_SUCCESS_ID else NOTIFICATION_CHANNEL_ERROR_ID
+
+        // Create intent for notification tap action
         // For error notifications, open LogsActivity; for success, open MainActivity
         val targetActivity = if (isSuccess) MainActivity::class.java else LogsActivity::class.java
         val intent =
@@ -57,11 +82,14 @@ object NotificationHelper {
 
         // Build notification
         val notification =
-                NotificationCompat.Builder(appContext, NOTIFICATION_CHANNEL_ID)
+                NotificationCompat.Builder(appContext, channelId)
                         .setSmallIcon(R.drawable.ic_notification_sms_mono)
                         .setContentTitle(title)
                         .setContentText(message)
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setPriority(
+                                if (isSuccess) NotificationCompat.PRIORITY_DEFAULT
+                                else NotificationCompat.PRIORITY_HIGH
+                        )
                         .setAutoCancel(true)
                         .setContentIntent(pendingIntent)
                         .build()
