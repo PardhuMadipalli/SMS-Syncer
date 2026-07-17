@@ -38,6 +38,14 @@ The goal is to build an android app that can send SMS messages after filtering t
 - **No Third-Party Access**: We do not have access to your ntfy.sh topic or messages
 - **Contact Privacy**: Contact names are only used for display purposes and are not stored or transmitted
 
+## Development
+
+Repository-specific guidance for AI coding agents is in [AGENTS.md](AGENTS.md). Build a debug APK from the project root with `./gradlew assembleDebug`. To deploy it with ADB, explicitly select the target device:
+
+```bash
+adb -s <serial> install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
 ## Technology Stack
 
 ### UI Framework
